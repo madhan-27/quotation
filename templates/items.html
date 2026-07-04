@@ -1,0 +1,130 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-box"></i> Service Items Library
+                <button type="button" class="btn btn-light btn-sm float-end" data-bs-toggle="modal" data-bs-target="#addItemModal">
+                    <i class="fas fa-plus"></i> Add New Service
+                </button>
+            </div>
+            <div class="card-body">
+                {% if items %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th><i class="fas fa-tag"></i> Service Name</th>
+                                <th><i class="fas fa-info-circle"></i> Description</th>
+                                <th><i class="fas fa-rupee-sign"></i> Default Price</th>
+                                <th><i class="fas fa-ruler"></i> Unit</th>
+                                <th><i class="fas fa-cog"></i> Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in items %}
+                            <tr>
+                                <td><strong>{{ item.name }}</strong></td>
+                                <td>{{ item.description or '-' }}</td>
+                                <td>₹{{ "%.2f"|format(item.default_price) }}</td>
+                                <td>{{ item.unit }}</td>
+                                <td>
+                                    <button class="btn btn-sm btn-success" onclick="useItem({{ item.id }})">
+                                        <i class="fas fa-plus"></i> Use
+                                    </button>
+                                    <a href="{{ url_for('delete_item', item_id=item.id) }}" 
+                                       class="btn btn-sm btn-danger"
+                                       onclick="return confirm('Are you sure you want to delete this service?')">
+                                        <i class="fas fa-trash"></i> Delete
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center py-5">
+                    <i class="fas fa-box-open fa-3x text-muted mb-3"></i>
+                    <p>No service items yet. Add your first service template!</p>
+                    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addItemModal">
+                        <i class="fas fa-plus"></i> Add Service
+                    </button>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Item Modal -->
+<div class="modal fade" id="addItemModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Add New Service Item</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST" action="{{ url_for('add_item') }}">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="name" class="form-label">Service Name *</label>
+                        <input type="text" class="form-control" id="name" name="name" required 
+                               placeholder="e.g., Interior Wall Painting">
+                    </div>
+                    <div class="mb-3">
+                        <label for="description" class="form-label">Description</label>
+                        <textarea class="form-control" id="description" name="description" rows="3"
+                                  placeholder="Detailed description of the service"></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label for="default_price" class="form-label">Default Price (₹) *</label>
+                        <input type="number" class="form-control" id="default_price" name="default_price" 
+                               step="0.01" required placeholder="e.g., 35.00">
+                    </div>
+                    <div class="mb-3">
+                        <label for="unit" class="form-label">Unit</label>
+                        <select class="form-control" id="unit" name="unit">
+                            <option value="SQFT">Square Feet (SQFT)</option>
+                            <option value="SQM">Square Meter (SQM)</option>
+                            <option value="ROOM">Room</option>
+                            <option value="WALL">Wall</option>
+                            <option value="HR">Hour</option>
+                            <option value="JOB">Per Job</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Add Service</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+function useItem(itemId) {
+    // Store the item ID in session storage to use in create quote
+    sessionStorage.setItem('selectedItemId', itemId);
+    window.location.href = '/create-quote';
+}
+
+// Check if returning from item selection
+if (sessionStorage.getItem('selectedItemId')) {
+    const itemId = sessionStorage.getItem('selectedItemId');
+    sessionStorage.removeItem('selectedItemId');
+    // Add the item to the quote form
+    if (typeof addItem === 'function') {
+        fetch(`/api/item-templates/${itemId}`)
+            .then(response => response.json())
+            .then(item => {
+                addItem(item.description || item.name, '', item.unit, item.default_price, '0');
+            })
+            .catch(error => console.error('Error:', error));
+    }
+}
+</script>
+{% endblock %}

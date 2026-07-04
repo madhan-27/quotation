@@ -1,0 +1,167 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-10 mx-auto">
+        <div class="card">
+            <div class="card-header" style="background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%); color: white;">
+                <h4><i class="fas fa-clipboard-list"></i> Create Work Order</h4>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-info">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <strong>Quote No:</strong> {{ quote.quote_no }}
+                        </div>
+                        <div class="col-md-6">
+                            <strong>Total Amount:</strong> ₹{{ "%.2f"|format(quote.total_amount) }}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="customer-box" style="background: #f5f5f5; padding: 15px; margin-bottom: 20px; border-left: 3px solid #1e3c72;">
+                    <h5><i class="fas fa-user"></i> Customer Details</h5>
+                    <p class="mb-0"><strong>{{ quote.customer_name }}</strong></p>
+                    <p class="mb-0">{{ quote.customer_address|replace('\n', '<br>')|safe }}</p>
+                </div>
+
+                <form method="POST">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="start_date" class="form-label">Start Date</label>
+                                <input type="date" class="form-control" id="start_date" name="start_date">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="expected_end_date" class="form-label">Expected End Date</label>
+                                <input type="date" class="form-control" id="expected_end_date" name="expected_end_date">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Status</label>
+                        <select name="status" class="form-control">
+                            <option value="In Progress">In Progress</option>
+                            <option value="Completed">Completed</option>
+                            <option value="On Hold">On Hold</option>
+                            <option value="Cancelled">Cancelled</option>
+                        </select>
+                    </div>
+
+                    <div class="card mb-3">
+                        <div class="card-header bg-light">
+                            <h5><i class="fas fa-credit-card"></i> Payment Terms</h5>
+                            <small class="text-muted">Set 4 payment milestones with percentages (Total should be 100%)</small>
+                        </div>
+                        <div class="card-body">
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label class="form-label">Payment 1 - Label</label>
+                                    <input type="text" class="form-control" name="payment_term_1_label" value="Advance Payment">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Payment 1 - Percentage (%)</label>
+                                    <input type="number" class="form-control" name="payment_term_1_percentage" value="50" step="0.01" min="0" max="100">
+                                </div>
+                            </div>
+
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label class="form-label">Payment 2 - Label</label>
+                                    <input type="text" class="form-control" name="payment_term_2_label" value="After Interior Painting">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Payment 2 - Percentage (%)</label>
+                                    <input type="number" class="form-control" name="payment_term_2_percentage" value="30" step="0.01" min="0" max="100">
+                                </div>
+                            </div>
+
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label class="form-label">Payment 3 - Label</label>
+                                    <input type="text" class="form-control" name="payment_term_3_label" value="After Exterior Painting">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Payment 3 - Percentage (%)</label>
+                                    <input type="number" class="form-control" name="payment_term_3_percentage" value="15" step="0.01" min="0" max="100">
+                                </div>
+                            </div>
+
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label class="form-label">Payment 4 - Label</label>
+                                    <input type="text" class="form-control" name="payment_term_4_label" value="After Final Completion">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Payment 4 - Percentage (%)</label>
+                                    <input type="number" class="form-control" name="payment_term_4_percentage" value="5" step="0.01" min="0" max="100">
+                                </div>
+                            </div>
+
+                            <div class="alert alert-success">
+                                <i class="fas fa-calculator"></i>
+                                <strong>Total Percentage:</strong> <span id="total_percentage">100</span>%
+                                <span id="percentage_warning" style="display:none; color:red; margin-left:10px;">
+                                    ⚠️ Total should be 100%
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Terms and Conditions</label>
+                        <textarea name="terms_conditions" class="form-control" rows="6">1. The work will be executed as per the agreed scope of work.
+2. Any additional work will be charged extra.
+3. Payment schedule must be followed strictly.
+4. All disputes subject to Chennai jurisdiction.</textarea>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Additional Notes</label>
+                        <textarea name="notes" class="form-control" rows="3" placeholder="Any special instructions..."></textarea>
+                    </div>
+
+                    <button type="submit" class="btn btn-success btn-lg">
+                        <i class="fas fa-check"></i> Create Work Order
+                    </button>
+                    <a href="{{ url_for('view_quote', quote_id=quote.id) }}" class="btn btn-secondary btn-lg">
+                        Cancel
+                    </a>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const inputs = document.querySelectorAll('input[name^="payment_term_"][name$="_percentage"]');
+        const totalSpan = document.getElementById('total_percentage');
+        const warningSpan = document.getElementById('percentage_warning');
+        
+        function updateTotal() {
+            let total = 0;
+            inputs.forEach(input => {
+                total += parseFloat(input.value) || 0;
+            });
+            totalSpan.textContent = total.toFixed(2);
+            
+            if (Math.abs(total - 100) > 0.01) {
+                warningSpan.style.display = 'inline';
+                warningSpan.textContent = ' ⚠️ Total is ' + total.toFixed(2) + '%. Should be 100%';
+            } else {
+                warningSpan.style.display = 'none';
+            }
+        }
+        
+        inputs.forEach(input => {
+            input.addEventListener('input', updateTotal);
+        });
+        
+        updateTotal();
+    });
+</script>
+{% endblock %}

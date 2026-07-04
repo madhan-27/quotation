@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8 mx-auto">
+        <div class="card">
+            <div class="card-header" style="background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%); color: white;">
+                <i class="fas fa-envelope"></i> Send Estimate via Email
+            </div>
+            <div class="card-body">
+                <div class="alert alert-info">
+                    <strong>Quote:</strong> {{ quote.quote_no }} | 
+                    <strong>Customer:</strong> {{ quote.customer_name }} |
+                    <strong>Total:</strong> ₹{{ "%.2f"|format(quote.total_amount) }}
+                </div>
+                
+                <form method="POST" enctype="multipart/form-data">
+                    <div class="mb-3">
+                        <label for="to_email" class="form-label">
+                            <i class="fas fa-envelope"></i> Customer Email *
+                        </label>
+                        <input type="email" class="form-control" id="to_email" name="to_email" 
+                               placeholder="customer@example.com" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="subject" class="form-label">
+                            <i class="fas fa-tag"></i> Subject
+                        </label>
+                        <input type="text" class="form-control" id="subject" name="subject" 
+                               value="Estimate {{ quote.quote_no }} from SHALOM PAINT BY ENTERPRISES" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="message" class="form-label">
+                            <i class="fas fa-comment"></i> Message
+                        </label>
+                        <textarea class="form-control" id="message" name="message" rows="6" required>
+Dear {{ quote.customer_name }},
+
+Thank you for choosing SHALOM PAINT BY ENTERPRISES.
+
+Please find attached your estimate {{ quote.quote_no }} for your review.
+
+Best regards,
+Mathan Kumar
+SHALOM PAINT BY ENTERPRISES
+                        </textarea>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="attachment" class="form-label">
+                            <i class="fas fa-paperclip"></i> Attach PDF File *
+                        </label>
+                        <input type="file" class="form-control" id="attachment" name="attachment" 
+                               accept=".pdf" required>
+                        <small class="text-muted">Select the PDF file from your computer to attach</small>
+                    </div>
+                    
+                    <div class="text-center">
+                        <button type="submit" class="btn btn-success btn-lg px-5">
+                            <i class="fas fa-paper-plane"></i> Send Email with Attachment
+                        </button>
+                        <a href="{{ url_for('view_quote', quote_id=quote.id) }}" class="btn btn-secondary btn-lg px-5">
+                            <i class="fas fa-times"></i> Cancel
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <!-- Download PDF Card -->
+        <div class="card mt-3">
+            <div class="card-header bg-light">
+                <i class="fas fa-file-pdf"></i> Need the PDF?
+            </div>
+            <div class="card-body text-center">
+                <p>If you haven't downloaded the PDF yet, click the button below:</p>
+                <a href="{{ url_for('export_quote_pdf', quote_id=quote.id) }}" class="btn btn-danger">
+                    <i class="fas fa-download"></i> Download PDF First
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

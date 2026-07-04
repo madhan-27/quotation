@@ -1,0 +1,195 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-edit"></i> Edit Quote - {{ quote.quote_no }}
+            </div>
+            <div class="card-body">
+                <form method="POST" id="quoteForm">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="customer_name" class="form-label">Customer Name *</label>
+                                <input type="text" class="form-control" id="customer_name" name="customer_name" 
+                                       value="{{ quote.customer_name }}" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="customer_address" class="form-label">Address *</label>
+                                <textarea class="form-control" id="customer_address" name="customer_address" 
+                                          rows="4" required>{{ quote.customer_address }}</textarea>
+                            </div>
+                            <div class="mb-3">
+                                <label for="header_text" class="form-label">Header Text</label>
+                                <input type="text" class="form-control" id="header_text" name="header_text" 
+                                       value="{{ quote.header_text }}">
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <div class="card mb-3">
+                                <div class="card-header bg-light">
+                                    Quote Items
+                                    <button type="button" class="btn btn-sm btn-primary float-end" onclick="addItem()">
+                                        <i class="fas fa-plus"></i> Add Item
+                                    </button>
+                                </div>
+                                <div class="card-body">
+                                    <div id="items-container">
+                                        {% for item in quote.items %}
+                                        <script>
+                                            // This will be populated by JavaScript
+                                            window.initialItems = window.initialItems || [];
+                                            window.initialItems.push({
+                                                description: {{ item.description|tojson }},
+                                                quantity: {{ item.quantity }},
+                                                unit: {{ item.unit|tojson }},
+                                                price: {{ item.price }},
+                                                amount: {{ item.amount }}
+                                            });
+                                        </script>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="card">
+                                <div class="card-header bg-light">
+                                    Total
+                                </div>
+                                <div class="card-body">
+                                    <h3 class="text-end">₹<span id="total-amount">{{ "%.2f"|format(quote.total_amount) }}</span></h3>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row mt-4">
+                        <div class="col-md-12 text-center">
+                            <button type="submit" class="btn btn-success btn-lg">Update Quote</button>
+                            <a href="{{ url_for('view_quote', quote_id=quote.id) }}" class="btn btn-secondary btn-lg">Cancel</a>
+                        </div>
+                    </div>
+                    
+                    <input type="hidden" name="items_data" id="items-data">
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+let itemCount = 0;
+let items = [];
+
+function addItem(description = '', quantity = '', unit = 'SQFT', price = '', amount = '') {
+    const container = document.getElementById('items-container');
+    const itemDiv = document.createElement('div');
+    itemDiv.className = 'item-row mb-3 p-3 border rounded';
+    itemDiv.id = `item-${itemCount}`;
+    
+    itemDiv.innerHTML = `
+        <div class="row">
+            <div class="col-md-12 mb-2">
+                <label class="form-label">Description</label>
+                <input type="text" class="form-control" name="description_${itemCount}" value="${description}" onchange="updateItem(${itemCount}, 'description', this.value)">
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-3">
+                <label class="form-label">Quantity</label>
+                <input type="number" class="form-control" name="quantity_${itemCount}" value="${quantity}" step="0.01" onchange="updateItem(${itemCount}, 'quantity', this.value)">
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Unit</label>
+                <input type="text" class="form-control" name="unit_${itemCount}" value="${unit}" onchange="updateItem(${itemCount}, 'unit', this.value)">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Price (₹)</label>
+                <input type="number" class="form-control" name="price_${itemCount}" value="${price}" step="0.01" onchange="updateItem(${itemCount}, 'price', this.value)">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Amount (₹)</label>
+                <input type="text" class="form-control" name="amount_${itemCount}" value="${amount}" readonly>
+            </div>
+            <div class="col-md-1">
+                <label class="form-label">&nbsp;</label>
+                <button type="button" class="btn btn-danger btn-sm" onclick="removeItem(${itemCount})">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </div>
+        </div>
+    `;
+    
+    container.appendChild(itemDiv);
+    
+    items.push({
+        id: itemCount,
+        description: description,
+        quantity: parseFloat(quantity) || 0,
+        unit: unit,
+        price: parseFloat(price) || 0,
+        amount: parseFloat(amount) || 0
+    });
+    
+    itemCount++;
+    calculateTotal();
+}
+
+function updateItem(id, field, value) {
+    const item = items.find(i => i.id === id);
+    if (item) {
+        if (field === 'description') item.description = value;
+        else if (field === 'quantity') item.quantity = parseFloat(value) || 0;
+        else if (field === 'unit') item.unit = value;
+        else if (field === 'price') item.price = parseFloat(value) || 0;
+        
+        if (field === 'quantity' || field === 'price') {
+            item.amount = item.quantity * item.price;
+            const amountInput = document.querySelector(`#item-${id} input[name="amount_${id}"]`);
+            if (amountInput) amountInput.value = item.amount.toFixed(2);
+        }
+        
+        calculateTotal();
+    }
+}
+
+function removeItem(id) {
+    const index = items.findIndex(i => i.id === id);
+    if (index !== -1) {
+        items.splice(index, 1);
+        const element = document.getElementById(`item-${id}`);
+        if (element) element.remove();
+        calculateTotal();
+    }
+}
+
+function calculateTotal() {
+    let total = 0;
+    items.forEach(item => {
+        total += item.amount;
+    });
+    document.getElementById('total-amount').innerText = total.toFixed(2);
+}
+
+// Load existing items
+if (window.initialItems) {
+    window.initialItems.forEach(item => {
+        addItem(item.description, item.quantity, item.unit, item.price, item.amount);
+    });
+}
+
+document.getElementById('quoteForm').addEventListener('submit', function(e) {
+    const itemsData = items.map(item => ({
+        description: item.description,
+        quantity: item.quantity,
+        unit: item.unit,
+        price: item.price,
+        amount: item.amount
+    }));
+    document.getElementById('items-data').value = JSON.stringify(itemsData);
+});
+</script>
+{% endblock %}

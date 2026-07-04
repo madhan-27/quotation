@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8 mx-auto">
+        <div class="card">
+            <div class="card-header" style="background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%); color: white;">
+                <i class="fas fa-envelope"></i> Send Estimate via Email
+            </div>
+            <div class="card-body">
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle"></i> 
+                    <strong>Quote:</strong> {{ quote.quote_no }} | 
+                    <strong>Customer:</strong> {{ quote.customer_name }}
+                </div>
+                
+                <div class="alert alert-success">
+                    <i class="fas fa-download"></i>
+                    <strong>Step 1:</strong> Click the button below to download the PDF<br><br>
+                    <a href="{{ url_for('download_pdf', quote_no=quote.quote_no) }}" class="btn btn-danger">
+                        <i class="fas fa-file-pdf"></i> Download PDF
+                    </a>
+                </div>
+                
+                <div class="alert alert-primary">
+                    <i class="fas fa-envelope"></i>
+                    <strong>Step 2:</strong> Click below to open your email client<br><br>
+                    {% set subject = 'Estimate ' + quote.quote_no + ' from SHALOM PAINT BY ENTERPRISES' %}
+                    {% set body = 'Dear ' + quote.customer_name + '%0D%0A%0D%0APlease find attached your estimate ' + quote.quote_no + '.%0D%0A%0D%0ATotal Amount: ₹' + (quote.total_amount|string) + '%0D%0A%0D%0ABest regards,%0D%0AMathan Kumar%0D%0ASHALOM PAINT BY ENTERPRISES' %}
+                    <a href="mailto:?subject={{ subject|urlencode }}&body={{ body }}" class="btn btn-primary">
+                        <i class="fas fa-envelope-open"></i> Open Email Client
+                    </a>
+                </div>
+                
+                <div class="alert alert-secondary">
+                    <i class="fas fa-paperclip"></i>
+                    <strong>Step 3:</strong> Attach the downloaded PDF to your email
+                </div>
+                
+                <div class="text-center mt-4">
+                    <a href="{{ url_for('view_quote', quote_id=quote.id) }}" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left"></i> Back to Quote
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

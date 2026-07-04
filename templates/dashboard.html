@@ -1,0 +1,230 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-12 text-center">
+        <h1 class="text-white mb-4" style="text-shadow: 2px 2px 4px rgba(0,0,0,0.3);">
+            <i class="fas fa-chart-line"></i> Welcome to Dashboard
+        </h1>
+        <p class="text-white-50">Manage your painting business professionally</p>
+    </div>
+</div>
+
+<div class="row mb-5">
+    <div class="col-md-4">
+        <div class="stat-card stat-card-primary">
+            <div class="stat-icon">
+                <i class="fas fa-file-invoice"></i>
+            </div>
+            <div class="stat-label">Total Quotes</div>
+            <div class="stat-number">{{ stats.total_quotes }}</div>
+            <small class="opacity-75">+12% from last month</small>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="stat-card stat-card-success">
+            <div class="stat-icon">
+                <i class="fas fa-rupee-sign"></i>
+            </div>
+            <div class="stat-label">Total Revenue</div>
+            <div class="stat-number">₹{{ "%.0f"|format(stats.total_amount) }}</div>
+            <small class="opacity-75">+23% from last month</small>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="stat-card stat-card-warning">
+            <div class="stat-icon">
+                <i class="fas fa-users"></i>
+            </div>
+            <div class="stat-label">Active Clients</div>
+            <div class="stat-number">{{ contacts_count|default('0') }}</div>
+            <small class="opacity-75">+5 new this month</small>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-chart-bar"></i> Recent Quotes Overview
+            </div>
+            <div class="card-body">
+                <canvas id="quotesChart" height="300"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-tasks"></i> Quick Actions
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-3">
+                    <a href="{{ url_for('create_quote') }}" class="btn btn-primary btn-lg">
+                        <i class="fas fa-plus-circle"></i> Create New Quote
+                    </a>
+                    <a href="{{ url_for('contacts') }}" class="btn btn-success btn-lg">
+                        <i class="fas fa-user-plus"></i> Add New Client
+                    </a>
+                    <a href="{{ url_for('items') }}" class="btn btn-info btn-lg text-white">
+                        <i class="fas fa-palette"></i> Manage Services
+                    </a>
+                    <a href="{{ url_for('export_all_data') }}" class="btn btn-success btn-lg">
+                        <i class="fas fa-file-excel"></i> Export All Data
+                     </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-history"></i> Recent Quotes
+                <a href="{{ url_for('quotes_list') }}" class="btn btn-sm btn-primary float-end">
+                    View All
+                </a>
+            </div>
+            <div class="card-body">
+                {% if stats.recent_quotes %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Quote No.</th>
+                                <th>Customer</th>
+                                <th>Date</th>
+                                <th>Due Date</th>
+                                <th>Amount</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for quote in stats.recent_quotes %}
+                            <tr>
+                                <td><span class="badge bg-primary">{{ quote.quote_no }}</span></td>
+                                <td><strong>{{ quote.customer_name }}</strong></td>
+                                <td>{{ quote.date.strftime('%d/%m/%Y') }}</td>
+                                <td>{{ quote.due_date.strftime('%d/%m/%Y') }}</td>
+                                <td class="text-success fw-bold">₹{{ "%.2f"|format(quote.total_amount) }}</td>
+                                <td>
+                                    <a href="{{ url_for('view_quote', quote_id=quote.id) }}" class="btn btn-sm btn-info">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    <a href="{{ url_for('edit_quote', quote_id=quote.id) }}" class="btn btn-sm btn-warning">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center py-5">
+                    <i class="fas fa-file-alt fa-3x text-muted mb-3"></i>
+                    <p>No quotes yet. Start by creating your first quote!</p>
+                    <a href="{{ url_for('create_quote') }}" class="btn btn-primary">Create Quote</a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var canvas = document.getElementById('quotesChart');
+    if (canvas) {
+        new Chart(canvas.getContext('2d'), {
+            type: 'line',
+            data: {
+                labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+                datasets: [{
+                    label: 'Quotes Generated',
+                    data: [12, 19, 15, 17, 14, 20],
+                    borderColor: 'rgb(102, 126, 234)',
+                    backgroundColor: 'rgba(102, 126, 234, 0.2)',
+                    tension: 0.4,
+                    fill: true
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                plugins: {
+                    legend: {
+                        position: 'top'
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+    }
+});
+</script>
+
+<style>
+.stat-card {
+    border-radius: 20px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+    color: white;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+.stat-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+}
+.stat-card-primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+.stat-card-success {
+    background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+}
+.stat-card-warning {
+    background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+}
+.stat-icon {
+    position: absolute;
+    right: 20px;
+    bottom: 20px;
+    font-size: 3rem;
+    opacity: 0.2;
+}
+.stat-label {
+    font-size: 1rem;
+    opacity: 0.9;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+.stat-number {
+    font-size: 2.5rem;
+    font-weight: bold;
+    margin: 0.5rem 0;
+}
+.card-header {
+    background: #f8f9fa;
+    border-bottom: 2px solid #dee2e6;
+    font-weight: bold;
+}
+.table th {
+    background: #f8f9fa;
+    border-top: none;
+}
+.btn-group-sm > .btn, .btn-sm {
+    margin: 0 2px;
+}
+</style>
+{% endblock %}

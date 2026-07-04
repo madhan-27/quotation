@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header" style="background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%); color: white;">
+                <h4><i class="fas fa-clipboard-list"></i> Work Order Details</h4>
+                <span class="float-end">{{ work_order.work_order_no }}</span>
+            </div>
+            <div class="card-body">
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <p><strong>Work Order No:</strong> {{ work_order.work_order_no }}</p>
+                        <p><strong>Quote No:</strong> {{ work_order.quote.quote_no }}</p>
+                        <p><strong>Date:</strong> {{ work_order.date.strftime('%d/%m/%Y') }}</p>
+                        <p><strong>Status:</strong> 
+                            <span class="badge {% if work_order.status == 'Completed' %}bg-success{% elif work_order.status == 'In Progress' %}bg-primary{% elif work_order.status == 'On Hold' %}bg-warning{% else %}bg-danger{% endif %}">
+                                {{ work_order.status }}
+                            </span>
+                        </p>
+                    </div>
+                    <div class="col-md-6">
+                        <p><strong>Start Date:</strong> 
+                            {% if work_order.start_date %}
+                                {{ work_order.start_date.strftime('%d/%m/%Y') }}
+                            {% else %}
+                                <span class="text-muted">Not specified</span>
+                            {% endif %}
+                        </p>
+                        <p><strong>Expected End Date:</strong> 
+                            {% if work_order.expected_end_date %}
+                                {{ work_order.expected_end_date.strftime('%d/%m/%Y') }}
+                            {% else %}
+                                <span class="text-muted">Not specified</span>
+                            {% endif %}
+                        </p>
+                    </div>
+                </div>
+
+                <div class="customer-box" style="background: #f5f5f5; padding: 15px; margin-bottom: 20px; border-left: 3px solid #1e3c72;">
+                    <h5><i class="fas fa-user"></i> Customer Details</h5>
+                    <p class="mb-0"><strong>{{ work_order.customer_name }}</strong></p>
+                    <p class="mb-0">{{ work_order.customer_address|replace('\n', '<br>')|safe }}</p>
+                </div>
+
+                <h5><i class="fas fa-credit-card"></i> Payment Schedule</h5>
+                <div class="table-responsive">
+                    <table class="table table-bordered">
+                        <thead style="background: #e8f0fe;">
+                            <tr>
+                                <th>#</th>
+                                <th>Milestone</th>
+                                <th style="text-align: center;">Percentage</th>
+                                <th style="text-align: right;">Amount (₹)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% set payment_terms = work_order.get_payment_terms_list() %}
+                            {% for term in payment_terms %}
+                            <tr>
+                                <td>{{ loop.index }}</td>
+                                <td>{{ term.label }}</td>
+                                <td style="text-align: center;">{{ "%.1f"|format(term.percentage) }}%</td>
+                                <td style="text-align: right;">₹{{ "%.2f"|format(term.amount) }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="alert alert-warning">
+                    <h5><i class="fas fa-gavel"></i> Terms and Conditions</h5>
+                    <p style="white-space: pre-line;">{{ work_order.terms_conditions or 'No terms and conditions specified.' }}</p>
+                </div>
+
+                {% if work_order.notes %}
+                <div class="alert alert-secondary">
+                    <h5><i class="fas fa-sticky-note"></i> Notes</h5>
+                    <p>{{ work_order.notes }}</p>
+                </div>
+                {% endif %}
+
+                <div class="text-center mt-4">
+                    <a href="{{ url_for('export_work_order_pdf', work_order_id=work_order.id) }}" class="btn btn-danger btn-lg">
+                        <i class="fas fa-file-pdf"></i> Export PDF
+                    </a>
+                    <a href="{{ url_for('work_orders_list') }}" class="btn btn-primary btn-lg">
+                        <i class="fas fa-list"></i> All Work Orders
+                    </a>
+                    <a href="{{ url_for('view_quote', quote_id=work_order.quote.id) }}" class="btn btn-secondary btn-lg">
+                        <i class="fas fa-arrow-left"></i> Back to Quote
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
