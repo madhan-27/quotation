@@ -1362,7 +1362,5 @@ def download_pdf(quote_no):
     return send_file(pdf_file, as_attachment=True, download_name=f'Estimate_{quote.quote_no}.pdf', mimetype='application/pdf')
 
 if __name__ == '__main__':
-    with app.app_context():
-        db.create_all()
     port = int(os.environ.get('PORT', 5000))
     app.run(host='0.0.0.0', port=port)
