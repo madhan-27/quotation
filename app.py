@@ -86,7 +86,7 @@ class WorkOrder(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     work_order_no = db.Column(db.String(50), unique=True, nullable=False)
     quote_id = db.Column(db.Integer, db.ForeignKey('quote.id'), nullable=False)
-    quote = db.relationship('Quote', backref='work_orders')
+    quote = db.relationship('Quote', backref=db.backref('work_orders', cascade='all, delete-orphan'))
     
     date = db.Column(db.DateTime, default=datetime.utcnow)
     start_date = db.Column(db.DateTime, nullable=True)
@@ -949,9 +949,13 @@ def edit_quote(quote_id):
 @app.route('/quote/<int:quote_id>/delete')
 def delete_quote(quote_id):
     quote = Quote.query.get_or_404(quote_id)
-    db.session.delete(quote)
-    db.session.commit()
-    flash('Quote deleted successfully!', 'success')
+    try:
+        db.session.delete(quote)
+        db.session.commit()
+        flash('Quote deleted successfully!', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Could not delete quote: {str(e)}', 'danger')
     return redirect(url_for('quotes_list'))
 
 @app.route('/quote/<int:quote_id>/export-pdf')
