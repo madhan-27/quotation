@@ -1164,8 +1164,8 @@ def export_quote_pdf(quote_id):
                             Paragraph(f'{RUPEE} {after_discount:,.2f}', value_style)])
     if quote.apply_gst:
         total_rows.append(['', Paragraph('GST (18%):', label_style), Paragraph(f'+ {RUPEE} {gst_amt:,.2f}', value_style)])
-    total_rows.append(['', Paragraph('GRAND TOTAL:', grand_label_style),
-                        Paragraph(f'{RUPEE} {grand_total:,.2f}', grand_value_style)])
+    total_rows.append(['', Paragraph('GRAND TOTAL:', grand_label_style), Paragraph(f'{RUPEE} {grand_total:,.2f}', grand_value_style)
+                      ])
 
     spacer_col = CONTENT_WIDTH - 7 * cm  # leaves 4cm label + 3cm value
     total_table = Table(total_rows, colWidths=[spacer_col, 4 * cm, 3 * cm])
